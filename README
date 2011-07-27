@@ -1,0 +1,39 @@
+NAME
+    Dancer::Template::Xslate - Text::Xslate wrapper for Dancer
+
+VERSION
+    version 0.01
+
+DESCRIPTION
+    This class is an interface between Dancer's template engine abstraction
+    layer and the Text::Xslate module.
+
+    In order to use this engine, use the template setting:
+
+        template: xslate
+
+    This can be done in your config.yml file or directly in your app code
+    with the set keyword.
+
+    You can configure Text::Xslate :
+
+        template: xslate
+        engines:
+            xslate:
+                cache_dir  => "/www/.../xslate_cache",
+                cache      => 1,
+                module =>
+                    - Text::Xslate::Bridge::TT2 # to keep partial compatibility
+
+SEE ALSO
+    Dancer, Text::Xslate, <http://xslate.org/>
+
+AUTHOR
+    franck cuny <franck@lumberjaph.net>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2010 by franck cuny.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
