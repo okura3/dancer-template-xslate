@@ -10,9 +10,11 @@ lib/Dancer/Template/Xslate.pm
 t/00-load.t
 t/01-main.t
 t/02-app.t
+t/03-views.t
 t/index.tx
 t/index.xslate
 t/release-eol.t
 t/release-no-tabs.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t
+t/views/index.tx

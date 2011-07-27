@@ -8,10 +8,11 @@ BEGIN {
 
 use strict;
 use warnings;
+use Carp;
 
 use Text::Xslate;
 use Dancer::Config 'setting';
-use Dancer::FileUtils 'path';
+use File::Spec;
 
 use base 'Dancer::Template::Abstract';
 
@@ -48,7 +49,7 @@ sub view {
 sub layout {
     my ($self, $layout, $tokens, $content) = @_;
     my $layout_name = $self->_template_name($layout);
-    my $layout_path = path('layouts', $layout_name);
+    my $layout_path = File::Spec->catfile('layouts', $layout_name);
     my $full_content =
       Dancer::Template->engine->render($layout_path,
         {%$tokens, content => $content});
@@ -58,6 +59,13 @@ sub layout {
 
 sub render {
     my ($self, $template, $tokens) = @_;
+    
+    my $path = $_engine->{path};
+    my $views = File::Spec->rel2abs( setting('views') );
+    unless ( grep {$_ eq $views} @$path ) {
+        my $error = qq/Couldn't change include_path to "$views"/;
+        croak $error;
+    }
 
     my $content = eval {
         $_engine->render($template, $tokens)
@@ -65,7 +73,7 @@ sub render {
 
     if (my $err = $@) {
         my $error = qq/Couldn't render template "$err"/;
-        die $error;
+        croak $error;
     }
 
     return $content;
