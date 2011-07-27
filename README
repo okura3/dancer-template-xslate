@@ -20,10 +20,12 @@ DESCRIPTION
         template: xslate
         engines:
             xslate:
-                cache_dir  => "/www/.../xslate_cache",
-                cache      => 1,
-                module =>
+                syntax: TTerse
+                suffix: ".tt"
+                module:
                     - Text::Xslate::Bridge::TT2 # to keep partial compatibility
+                cache: 1
+                cache_dir: "xslate_cache"
 
 SEE ALSO
     Dancer, Text::Xslate, <http://xslate.org/>
