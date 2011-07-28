@@ -16,8 +16,6 @@ use File::Spec;
 
 use base 'Dancer::Template::Abstract';
 
-my $_engine;
-
 sub default_tmpl_ext { "tx" }
 
 sub init {
@@ -29,7 +27,8 @@ sub init {
     my $views = setting('views') || '.';
     my $path = [ $views ];
 
-    $_engine = Text::Xslate->new(%args, path => $path, );
+    my $_engine = Text::Xslate->new(%args, path => $path, );
+    $self->{_engine} = $_engine;
 }
 
 sub _template_name {
@@ -59,9 +58,9 @@ sub layout {
 
 sub render {
     my ($self, $template, $tokens) = @_;
-    
+    my $_engine = $self->{_engine};
     my $path = $_engine->{path};
-    my $views = File::Spec->rel2abs( setting('views') );
+    my $views = File::Spec->rel2abs( setting('views') || '.' );
     unless ( grep {$_ eq $views} @$path ) {
         my $error = qq/Couldn't change include_path to "$views"/;
         croak $error;
