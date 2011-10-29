@@ -16,6 +16,44 @@ use File::Spec;
 
 use base 'Dancer::Template::Abstract';
 
+{
+package Dancer::Template::Abstract;
+no strict qw/subs/;
+*template = sub {
+    my ($class, $view, $tokens, $options) = @_;
+    my ($content, $full_content);
+    my $engine = Dancer::Template->engine;
+    # it's important that $tokens is not undef, so that things added to it via
+    # a before_template in apply_renderer survive to the apply_layout. GH#354
+    $tokens  ||= {};
+    $options ||= {};
+    if ($view) {
+        # check if the requested view exists
+        $view = $engine->view($view);
+        my $view_path = path(Dancer::App->current->setting('views'), $view);
+        if (-e $view_path) {
+            $content = $engine->apply_renderer($view, $tokens);
+        } else {
+            Dancer::Logger::error("Supplied view ($view) was not found.");
+            return Dancer::Error->new(
+                          code => 500,
+                          message => 'view not found',
+                   )->render();
+        }
+    } else {
+        $content = delete $options->{content};
+    }
+    defined $content and $full_content =
+      $engine->apply_layout($content, $tokens, $options);
+    defined $full_content
+      and return $full_content;
+    Dancer::Error->new(
+        code    => 404,
+        message => "Page not found",
+    )->render();
+};
+}
+
 sub default_tmpl_ext { "tx" }
 
 sub init {
@@ -54,7 +92,6 @@ sub layout {
         {%$tokens, content => $content});
     $full_content;
 }
-
 
 sub render {
     my ($self, $template, $tokens) = @_;
