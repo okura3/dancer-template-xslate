@@ -9,57 +9,52 @@ BEGIN {
 use strict;
 use warnings;
 use Carp;
-
+use Moo;
+use Dancer::Moo::Types;
+use Dancer::FileUtils qw'path';
 use Text::Xslate;
-use Dancer::Config 'setting';
-use File::Spec;
 
-use base 'Dancer::Template::Abstract';
+with 'Dancer::Core::Role::Template';
 
-sub default_tmpl_ext { "tx" }
+has engine => (
+  is  => 'rw',
+  isa => sub { ObjectOf( 'Text::Xslate', @_ ) },
+);
+
+sub default_tmpl_ext {".tx"}
 
 sub init {
-    my $self = shift;
-
-    my %args = (
-        %{$self->config},
-    );
-    my $views = setting('views') || '.';
-    my $path = [ $views ];
-
-    my $_engine = Text::Xslate->new(%args, path => $path, );
-    $self->{_engine} = $_engine;
+  my $self     = shift;
+  my $charset  = $self->charset;
+  my @encoding = length($charset) ? ( ENCODING => $charset ) : ();
+  my %args     = ( %{ $self->config }, );
+  my $views    = $self->{views} || '.';
+  my $path     = [$views];
+  $self->engine( Text::Xslate->new( %args, path => $path, ) );
 }
 
 sub _template_name {
-    my ( $self, $view ) = @_;
-    my $def_tmpl_ext = $self->config->{suffix} || $self->default_tmpl_ext();
-    $def_tmpl_ext =~ s/^\.//;
-    $view .= ".$def_tmpl_ext" if $view !~ /\.\Q$def_tmpl_ext\E$/;
-    return $view;
+  my ( $self, $view ) = @_;
+  my $suffix = $self->config->{suffix} // default_tmpl_ext;
+  $view .= $suffix if $view !~ /\Q$suffix\E$/;
+  return $view;
 }
 
 sub render {
-    my ($self, $template, $tokens) = @_;
-    my $_engine = $self->{_engine};
-    my $path = $_engine->{path};
-    my $views = File::Spec->rel2abs( setting('views') || '.' );
-    unless ( grep {$_ eq $views} @$path ) {
-        my $error = qq/Couldn't change include_path to "$views"/;
-        croak $error;
-    }
-
-    $template =~ s/^\Q$views\E//;
-    my $content = eval {
-        $_engine->render($template, $tokens)
-    };
-
-    if (my $err = $@) {
-        my $error = qq/Couldn't render template "$err"/;
-        croak $error;
-    }
-
-    return $content;
+  my ( $self, $template, $tokens ) = @_;
+  my $path  = $self->engine->{path};
+  my $views = File::Spec->rel2abs( $self->{views} );
+  unless ( grep { $_ eq $views } @$path ) {
+    my $error = qq/Couldn't change include_path to "$views"/;
+    croak $error;
+  }
+  $template =~ s/^\Q$views\E//;
+  my $content = eval { $self->engine->render( $template, $tokens ) };
+  if ( my $err = $@ ) {
+    my $error = qq/Couldn't render template "$err"/;
+    croak $error;
+  }
+  return $content;
 }
 
 1;
