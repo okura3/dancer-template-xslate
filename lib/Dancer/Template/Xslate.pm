@@ -23,7 +23,7 @@ has engine => (
 
 sub default_tmpl_ext {".tx"}
 
-sub init {
+sub BUILD {
   my $self     = shift;
   my $charset  = $self->charset;
   my @encoding = length($charset) ? ( ENCODING => $charset ) : ();
