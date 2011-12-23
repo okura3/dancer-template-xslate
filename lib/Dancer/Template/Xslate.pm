@@ -27,7 +27,14 @@ sub BUILD {
   my $self     = shift;
   my $charset  = $self->charset;
   my @encoding = length($charset) ? ( ENCODING => $charset ) : ();
-  my %args     = ( %{ $self->config }, );
+  my $config = $self->config;
+  my %args;
+  foreach my $key (
+    qw/path cache cache_dir function module input_layer verbose
+       suffix syntax type line_start tag_start tag_end header footer
+       warn_handler die_handler/ ) {
+      $args{$key} = $config->{$key} if defined $config->{$key};
+  }
   my $views    = $self->{views} || '.';
   my $path     = [$views];
   $self->engine( Text::Xslate->new( %args, path => $path, ) );
